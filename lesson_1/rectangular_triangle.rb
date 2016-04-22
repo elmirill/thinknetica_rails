@@ -1,9 +1,9 @@
 puts "Hey, what's your triangle's first side? (cm)"
-a = gets.chomp.to_i
+a = gets.chomp.to_f
 puts "And what's your triangle's second side? (cm)"
-b = gets.chomp.to_i
+b = gets.chomp.to_f
 puts "What's about third side? (cm)"
-c = gets.chomp.to_i
+c = gets.chomp.to_f
 
 def is_isosceles?(a, b, c)
   a == b || b == c || a == c
