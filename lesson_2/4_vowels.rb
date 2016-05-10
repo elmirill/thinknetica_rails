@@ -1,12 +1,9 @@
 alphabet = ('a'..'z')
-alphabet_hash = {}
+vowels_hash = {}
+vowels = ['a', 'e', 'i', 'o', 'u', 'y']
 
 alphabet.each_with_index do |l, i| 
-  alphabet_hash[l.to_sym] = i + 1
+  vowels_hash[l.to_sym] = i + 1 if vowels.include? l
 end
 
-vowels = [:a, :e, :i, :o, :u, :y]
-vowels_hash = alphabet_hash.select { |k, v| vowels.include? k }
-
-puts alphabet_hash
 puts vowels_hash

@@ -14,13 +14,13 @@ end
 
 def calculate_products_total(products_list)
   products_total_list = []
+  super_total = 0
   products_list.each do |product_name, product_stats|
     product_total = product_stats[:price] * product_stats[:quantity]
     puts "Total for #{product_name}: #{product_total} golds."
-    products_total_list << product_total
+    super_total += product_total
   end
   
-  super_total = products_total_list.inject(0) { |sum, p| sum + p }
   puts "Total for all products: #{super_total} golds."
 end
 
