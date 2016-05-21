@@ -11,19 +11,11 @@ class Station
     self.trains << train
   end
   
-  def show_trains_by_type
-    passenger_trains = trains.select { |train| train.type == "Passenger" }
-    cargo_trains = trains.select { |train| train.type == "Cargo" }
-    
-    puts passenger_trains
-    puts "Total passenger trains: #{passenger_trains.size}"
-    puts cargo_trains
-    puts "Total cargo trains: #{cargo_trains.size}"
+  def trains_by_type(type)
+    trains.select { |train| train.type == type }
   end
   
   def send_train(train_number)
-    train = trains.select { |t| t.number == train_number }
-    self.trains = trains - train
-    train
+    trains.delete_if { |train| train.number == train_number }
   end
 end

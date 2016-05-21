@@ -15,69 +15,54 @@ class Train
   
   def stop
     self.speed = 0
-    puts "Halt!"
-    puts "Current speed is #{speed}."
   end
   
-  def attach_wagon(detach = false)
-    if speed == 0 && detach == false
+  def attach_wagon
+    if speed == 0
       self.wagons += 1
-      puts "One wagon attached. Currently there are(is) #{wagons} wagon(s)."
-    elsif speed == 0 && detach == true
+    end
+  end
+  
+  def detach_wagon
+    if speed == 0
       unless wagons < 1
         self.wagons -= 1
-        puts "One wagon detached. Currently there are(is) #{wagons} wagon(s)."
-      else
-        puts "There are no wagons to detach!"
       end
-    else
-      puts "First stop the train, please."
     end
   end
   
   def add_route(route)
-    if route.class == Route
-      self.route = route
-    else
-      puts "Add a valid route."
+    self.route = route
+    self.current_station = route.stations.first
+  end
+  
+  def route?
+    route != nil
+  end
+  
+  def current_station_index
+    if route?
+      route.stations.find_index(current_station)
     end
   end
   
-  def move_to_station(station)
-    unless route == nil
-      self.current_station = route.stations.find { |s| s.name == station }
-      
-      if current_station.nil?
-        puts "There's no such station on this route."
-      else
-        puts "Train moved to the #{current_station.name} station."
-      end
-    else
-      puts "Add a route first."
+  def move_to_station(station_name)
+    if route?
+      destination_station = route.stations.find { |s| s.name == station }
+      self.current_station = destination_station
+      destination_station.accept_train(self)
     end
   end
   
-  # Arguments may be "current", "previous" and "next"
-  def show_station(station = "current")
-    self.current_station ||= route.stations.first
-    current_station_index = route.stations.find_index(current_station)
-    
-    if station == "current"
-      puts "Current station is #{current_station.name}."
-    elsif station == "previous"
-      if current_station_index == 0
-        puts "There was no previous station since this station is first."
-      else
-        puts "Previous station was #{route.stations[current_station_index - 1].name}."
-      end
-    elsif station == "next"
-      if current_station_index == route.stations.size - 1
-        puts "There would not be next station since this station is last."
-      else
-        puts "Next station would be #{route.stations[current_station_index + 1].name}."
-      end
-    else
-      puts "Argument should be blank, \"previous\" or \"next\"."
+  def previous_station
+    if route? && current_station_index != 0
+      route.stations[current_station_index - 1]
+    end
+  end
+  
+  def next_station
+    if route? && current_station_index != route.stations.size - 1
+      route.stations[current_station_index + 1]
     end
   end
 end

@@ -13,13 +13,21 @@ $hogsmeade = Station.new("Hogsmeade")
 $worlds_end = Station.new("World's End")
 
 # Creating routes
-$kings_cross_to_hogsmeade = Route.new($kings_cross, $hogsmeade, [$chufnell_regis, $westcombe_at_sea])
-$hill_valley_to_worlds_end = Route.new($hill_valley, $worlds_end, [$hogsmeade, $kings_cross, $chufnell_regis])
-$worlds_end_to_westcombe_at_sea = Route.new($worlds_end, $westcombe_at_sea, [$hill_valley])
+$kings_cross_to_hogsmeade = Route.new([$kings_cross, $hogsmeade])
+$hill_valley_to_worlds_end = Route.new([$hill_valley, $worlds_end])
+$worlds_end_to_westcombe_at_sea = Route.new([$worlds_end, $westcombe_at_sea])
 
 # Creating trains
 $hogwarts_express = Train.new("8", "Passenger", 25)
 $the_elb = Train.new("1", "Cargo", 0)
+
+# Adding intermediate stations
+$kings_cross_to_hogsmeade.add_intermediate($chufnell_regis)
+$kings_cross_to_hogsmeade.add_intermediate($westcombe_at_sea)
+$hill_valley_to_worlds_end.add_intermediate($hogsmeade)
+$hill_valley_to_worlds_end.add_intermediate($kings_cross)
+$hill_valley_to_worlds_end.add_intermediate($chufnell_regis)
+$worlds_end_to_westcombe_at_sea.add_intermediate($hill_valley)
 
 # Setting relations
 $kings_cross.accept_train($hogwarts_express)
