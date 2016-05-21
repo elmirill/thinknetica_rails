@@ -48,7 +48,7 @@ class Train
   
   def move_to_station(station_name)
     if route?
-      destination_station = route.stations.find { |s| s.name == station }
+      destination_station = route.stations.find { |s| s.name == station_name }
       self.current_station = destination_station
       destination_station.accept_train(self)
     end

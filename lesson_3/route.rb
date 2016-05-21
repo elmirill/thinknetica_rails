@@ -14,7 +14,7 @@ class Route
   # Also checking if we are not remowing dispatch or destination stations
   def remove_intermediate(station_name)
     if stations.any? { |s| s.name == station_name }
-      self.stations.delete_if { |station| station.name == station_name && station.index != 0 && station.index != stations.size - 1 }
+      self.stations.delete_if { |s| s.name == station_name && stations.index(s) != 0 && stations.index(s) != stations.size - 1 }
     end
   end
 
