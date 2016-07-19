@@ -53,9 +53,15 @@ class Train
       destination_station = route.stations.find { |s| s.name == station_name }
       self.current_station = destination_station
       destination_station.accept_train(self)
+    else 
+      false
     end
   end
   
+  def move_to_station?(station_name)
+    move_to_station(station_name)
+  end
+      
   def previous_station
     if route? && current_station_index != 0
       route.stations[current_station_index - 1]
@@ -66,6 +72,12 @@ class Train
     if route? && current_station_index != route.stations.size - 1
       route.stations[current_station_index + 1]
     end
+  end
+  
+  def type
+    "passenger" if self.is_a? PassengerTrain
+    "cargo" if self.is_a? CargoTrain
+    "generic" if self.is_a Train
   end
   
   # Остальные методы (те, что выше) могут быть полезны для клиентского кода и не нарушают принципов инкапсуляции.
