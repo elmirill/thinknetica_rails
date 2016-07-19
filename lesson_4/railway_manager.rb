@@ -4,6 +4,9 @@ class RailwayManager
     @trains = []
     @passenger_trains = []
     @cargo_trains = []
+    @wagons = []
+    @passenger_wagons = []
+    @cargo_wagons = []
     @stations = []
     @routes = []
   end
@@ -16,11 +19,12 @@ class RailwayManager
       puts "2. Create a train"
       puts "3. Create a route"
       puts "4. Assign the route to the train"
-      puts "5. Attach wagons"
-      puts "6. Detach wagons"
-      puts "7. Move trains to the station"
-      puts "8. List stations and trains on them"
-      puts "9. Exit"
+      puts "5. Create a wagon"
+      puts "6. Attach wagons"
+      puts "7. Detach wagons"
+      puts "8. Move trains to the station"
+      puts "9. List stations and trains on them"
+      puts "10. Exit"
       puts "---------------------------------"
 
       input_top = gets.chomp.to_i
@@ -36,12 +40,14 @@ class RailwayManager
         when 4
           assign_route
         when 5
-          attach_wagons
+          create_wagon
         when 6
-          detach_wagons
+          attach_wagons
         when 7
-          move_to_station
+          detach_wagons
         when 8
+          move_to_station
+        when 9
           list_stations_and_trains
       end
     end
@@ -52,6 +58,9 @@ class RailwayManager
   attr_accessor :trains
   attr_accessor :passenger_trains
   attr_accessor :cargo_trains
+  attr_accessor :wagons
+  attr_accessor :passenger_wagons
+  attr_accessor :cargo_wagons
   attr_accessor :stations
   attr_accessor :routes
   
@@ -200,6 +209,41 @@ class RailwayManager
     else
       puts "An error occured!"
     end
+  end
+  
+  def create_wagon
+    input_wagon_number = nil
+
+    loop do
+      puts "Enter the wagons's number:"
+      input_wagon_number = gets.chomp.to_i
+      break if input_wagon_number != 0 && !wagons.any? { |t| t.number == input_wagon_number }
+      if wagons.any? { |t| t.number == input_wagon_number }
+        puts "Wagon with this number is already exist. Pick another number."
+      end
+    end
+
+    puts "Would it be a passenger or a cargo wagon?"
+    puts "---------------------------------"
+    puts "1. A passenger wagon"
+    puts "2. A cargo wagon"
+    puts "---------------------------------"
+
+    input_wagon_type = gets.chomp.to_i
+
+    case input_wagon_type
+      when 1
+        w = PassengerWagon.new(input_wagon_number)
+        self.passenger_wagons << w
+        self.wagons << w
+        puts "A new passenger wagon ##{input_wagon_number} has been created."
+      when 2
+        w = CargoWagon.new(input_wagon_number)
+        self.cargo_wagons << w
+        self.wagons << w
+        puts "A new cargo wagon ##{input_wagon_number} has been created."
+    end
+    wagons.each { |w| puts w.number }
   end
   
   def attach_wagons
