@@ -33,15 +33,28 @@ class Train
     end
   end
   
+  def attach_wagon?(wagon)
+    attach_wagon(wagon)
+  end
+  
   def detach_wagon(wagon)
     if speed == 0
       self.wagons.delete(wagon)
     end
   end
   
+  def detach_wagon?(wagon)
+    detach_wagon(wagon)
+  end
+  
   def add_route(route)
     self.route = route
     self.current_station = route.stations.first
+    current_station.accept_train(self)
+  end
+  
+  def add_route?(route)
+    add_route(route)
   end
   
   def route?
@@ -75,9 +88,11 @@ class Train
   end
   
   def type
-    "passenger" if self.is_a? PassengerTrain
-    "cargo" if self.is_a? CargoTrain
-    "generic" if self.is_a Train
+    if self.class == PassengerTrain
+      "passenger"
+    elsif self.class == CargoTrain
+      "cargo"
+    end
   end
   
   # Остальные методы (те, что выше) могут быть полезны для клиентского кода и не нарушают принципов инкапсуляции.

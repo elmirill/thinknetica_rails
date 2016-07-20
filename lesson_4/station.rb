@@ -3,6 +3,8 @@ class Station
   
   attr_reader :name
   attr_reader :trains
+  attr_reader :passenger_trains
+  attr_reader :cargo_trains
   
   def initialize(name)
     @name = name
@@ -43,4 +45,6 @@ class Station
   protected
   
   attr_writer :trains
+  attr_writer :passenger_trains
+  attr_writer :cargo_trains
 end

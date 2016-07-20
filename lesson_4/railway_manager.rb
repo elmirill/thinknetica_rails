@@ -9,10 +9,14 @@ class RailwayManager
     @cargo_wagons = []
     @stations = []
     @routes = []
+    @input_train = nil
+    @input_route = nil
+    @input_wagon = nil
   end
   
   def run
     loop do
+      puts "---------------------------------"
       puts "What would you like to do?"
       puts "---------------------------------"
       puts "1. Create a station"
@@ -24,11 +28,12 @@ class RailwayManager
       puts "7. Detach wagons"
       puts "8. Move trains to the station"
       puts "9. List stations and trains on them"
-      puts "10. Exit"
+      puts "10. List all the trains and wagons attached"
+      puts "11. Exit"
       puts "---------------------------------"
 
       input_top = gets.chomp.to_i
-      break if input_top == 9
+      break if input_top == 11
 
       case input_top
         when 1
@@ -49,6 +54,8 @@ class RailwayManager
           move_to_station
         when 9
           list_stations_and_trains
+        when 10
+          list_trains
       end
     end
   end
@@ -63,6 +70,9 @@ class RailwayManager
   attr_accessor :cargo_wagons
   attr_accessor :stations
   attr_accessor :routes
+  attr_accessor :input_train
+  attr_accessor :input_route
+  attr_accessor :input_wagon
   
   def create_station
     input_station_name = nil
@@ -93,25 +103,34 @@ class RailwayManager
       end
     end
 
-    puts "Would it be a passenger or a cargo train?"
-    puts "---------------------------------"
-    puts "1. A passenger train"
-    puts "2. A cargo train"
-    puts "---------------------------------"
+    input_train_type = nil
+    loop do
+      puts "Would it be a passenger or a cargo train?"
+      puts "---------------------------------"
+      puts "1. A passenger train"
+      puts "2. A cargo train"
+      puts "---------------------------------"
 
-    input_train_type = gets.chomp.to_i
-
-    case input_train_type
-      when 1
-        p = PassengerTrain.new(input_train_number)
-        self.passenger_trains << p
-        self.trains << p
-        puts "A new passenger train ##{input_train_number} has been created."
-      when 2
-        c = CargoTrain.new(input_train_number)
-        self.cargo_trains << c
-        self.trains << c
-        puts "A new cargo train ##{input_train_number} has been created."
+      input_train_type = gets.chomp.to_i
+      
+      if input_train_type == 1 || input_train_type == 2
+        case input_train_type
+          when 1
+            p = PassengerTrain.new(input_train_number)
+            self.passenger_trains << p
+            self.trains << p
+            puts "A new passenger train ##{input_train_number} has been created."
+            break
+          when 2
+            c = CargoTrain.new(input_train_number)
+            self.cargo_trains << c
+            self.trains << c
+            puts "A new cargo train ##{input_train_number} has been created."
+            break
+        end
+      else
+        puts "There's no such type of train. Please pick 1 or 2."
+      end
     end
   end
   
@@ -154,6 +173,8 @@ class RailwayManager
       list_stations
       input_intermediate_stations = gets.chomp.split(", ")
       
+      puts input_intermediate_stations.class
+      
       break if input_intermediate_stations == ["exit"]
       
       is_list = []
@@ -168,10 +189,12 @@ class RailwayManager
       end
     end
     
-    if r.add_intermediates?(input_intermediate_stations)
-      puts "#{input_intermediate_stations.join(", ")} stations added to the route."
-    else
-      puts "An error occured. Intermediate stations weren't added to the route."
+    if input_intermediate_stations != ["exit"]
+      if r.add_intermediates?(input_intermediate_stations)
+        puts "#{input_intermediate_stations.join(", ")} stations added to the route."
+      else
+        puts "An error occured. Intermediate stations weren't added to the route."
+      end
     end
     
     self.routes << r
@@ -179,32 +202,10 @@ class RailwayManager
   end
   
   def assign_route
-    input_train = nil
-    loop do
-      puts "Pick a train by number:"
-      list_trains
-      input_train = gets.chomp.to_i
-      input_train = trains.detect { |t| t.number == input_train }
-      break if input_train != nil
-      if input_train == nil
-        puts "There are no trains with this number, please enter another one."
-      end
-    end
-    
-    input_route = nil
-    loop do
-      puts "Pick a route by number:"
-      list_routes
-      input_route = gets.chomp.to_i
-      input_route = routes.detect { |r| r.number == input_route }
-      break if input_route != nil
-      if input_route == nil
-        puts "There are no routes with this number, please enter another one."
-      end
-    end
-    
-    input_train.add_route(input_route)
-    if input_train.route?
+    select_train ("Pick a train by number:")
+    select_route ("Pick a route by number")
+
+    if input_train.add_route?(input_route)
       puts "Route ##{input_route.number} assigned to Train ##{input_train.number}."
     else
       puts "An error occured!"
@@ -213,12 +214,11 @@ class RailwayManager
   
   def create_wagon
     input_wagon_number = nil
-
     loop do
       puts "Enter the wagons's number:"
       input_wagon_number = gets.chomp.to_i
-      break if input_wagon_number != 0 && !wagons.any? { |t| t.number == input_wagon_number }
-      if wagons.any? { |t| t.number == input_wagon_number }
+      break if input_wagon_number != 0 && !wagons.any? { |w| w.number == input_wagon_number }
+      if wagons.any? { |w| w.number == input_wagon_number }
         puts "Wagon with this number is already exist. Pick another number."
       end
     end
@@ -247,25 +247,42 @@ class RailwayManager
   end
   
   def attach_wagons
-    
+    select_train("Pick a train (by number) to attach a wagon:")
+    select_wagon("A list of available wagons to attach:")
+
+    if input_train.attach_wagon?(input_wagon)
+      puts "Wagon ##{input_wagon.number} was successfully attached to the train ##{input_train.number}."
+    else
+      puts "An error occured. Wagon wasn't attached to the train. Check the wagon type."
+    end
   end
   
   def detach_wagons
+    select_train("Pick a train (by number) to detach a wagon:")
     
+    if input_train.wagons.size > 0
+      loop do
+        puts "Choose a wagon to detach:"
+        input_train.wagons.each do |w|
+          puts "Wagon ##{w.number}"
+        end
+        input_wagon_number = gets.chomp.to_i
+        break if input_wagon_number != 0 && input_train.wagons.any? { |w| w.number == input_wagon_number }
+      end
+      
+      if input_train.detach_wagon?(input_wagon)
+        puts "Wagon ##{input_wagon.number} was successfully detached from the train ##{input_train.number}."
+      else
+        puts "An error occured. Wagon wasn't detached from the train."
+      end
+        
+    else
+      puts "There are no wagons attached to this train."
+    end
   end
   
   def move_to_station
-    input_train = nil
-    loop do
-      puts "What train would you like to move?"
-      list_trains
-      input_train = gets.chomp.to_i
-      input_train = trains.detect { |t| t.number == input_train }
-      break if input_train != nil
-      if input_train == nil
-        puts "There are no trains with this number, please enter another one."
-      end
-    end
+    select_train("What train would you like to move?")
 
     if !input_train.route?
       puts "Assign a route to this train first."
@@ -316,13 +333,90 @@ class RailwayManager
     end
   end
   
-  def list_trains
-    if trains.size > 0
-      trains.each do |t|
-        puts "Train ##{t.number}"
-      end
+  def list_trains(type="all")
+    case type
+      when "all"
+        if passenger_trains.size > 0
+          passenger_trains.each do |t|
+            puts "Passenger train ##{t.number}"
+            list_wagons_attached(t)
+          end
+        else
+          puts "There are currently no passenger trains."
+        end
+        if cargo_trains.size > 0
+          cargo_trains.each do |t|
+            puts "Cargo train ##{t.number}"
+            list_wagons_attached(t)
+          end
+        else
+          puts "There are currently no cargo trains."
+        end
+      when "passenger"
+        if passenger_trains.size > 0
+          passenger_trains.each do |t|
+            puts "Passenger train ##{t.number}"
+            list_wagons_attached(t)
+          end
+        else
+          puts "There are currently no passenger trains."
+        end
+      when "cargo"
+        if cargo_trains.size > 0
+          cargo_trains.each do |t|
+            puts "Cargo train ##{t.number}"
+            list_wagons_attached(t)
+          end
+        else
+          puts "There are currently no cargo trains."
+        end
+    end
+  end
+  
+  def list_wagons_attached(train)
+    if train.wagons.size > 0
+      wagons_numbers = train.wagons.map { |w| "##{w.number}" }
+      print " - Wagons attached: "
+      print wagons_numbers.join(", ")
+      puts "."
     else
-      puts "There are currently no trains."
+      puts " - No wagons attached"
+    end
+  end
+    
+  def list_wagons(type="all")
+    case type
+      when "all"
+        if passenger_wagons.size > 0
+          passenger_wagons.each do |w|
+            puts "Passenger wagon ##{w.number}"
+          end
+        else
+          puts "There are currently no passenger wagons."
+        end
+        if cargo_wagons.size > 0
+          cargo_wagons.each do |w|
+            puts "Cargo wagon ##{w.number}"
+          end
+        else
+          puts "There are currently no cargo wagons."
+        end
+      when "passenger"
+        if passenger_wagons.size > 0
+          passenger_wagons.each do |w|
+            puts "Passenger wagon ##{w.number}"
+          end
+        else
+          puts "There are currently no passenger wagons."
+        end
+      when "cargo"
+        if cargo_wagons.size > 0
+          cargo_wagons.each do |w|
+            puts "Cargo wagon ##{w.number}"
+          end
+        else
+          puts "There are currently no cargo wagons."
+        end
     end
   end
   
@@ -333,6 +427,52 @@ class RailwayManager
       end
     else
       puts "There are currently no routes."
+    end
+  end
+  
+  def select_train(message)
+    self.input_train = nil
+    loop do
+      puts message
+      list_trains
+      input_train_number = gets.chomp.to_i
+      self.input_train = trains.detect { |t| t.number == input_train_number }
+      break if input_train != nil
+      if input_train == nil
+        puts "There are no trains with this number, please enter another one."
+      end
+    end
+  end
+  
+  def select_route(message)
+    self.input_route = nil
+    loop do
+      puts message
+      list_routes
+      input_route_number = gets.chomp.to_i
+      self.input_route = routes.detect { |r| r.number == input_route_number }
+      break if input_route != nil
+      if input_route == nil
+        puts "There are no routes with this number, please enter another one."
+      end
+    end
+  end
+  
+  def select_wagon(message)
+    self.input_wagon = nil
+    loop do
+      puts message
+      if input_train.class == PassengerTrain
+        list_wagons("passenger")
+      elsif input_train.class == CargoTrain
+        list_wagons("cargo")
+      end
+      input_wagon_number = gets.chomp.to_i
+      self.input_wagon = wagons.detect { |w| w.number == input_wagon_number }
+      break if input_wagon != nil
+      if input_wagon == nil
+        puts "There are no wagons with this number, please enter another one."
+      end
     end
   end
   
