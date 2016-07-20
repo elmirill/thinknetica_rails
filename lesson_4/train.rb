@@ -29,6 +29,7 @@ class Train
   
   def attach_wagon(wagon)
     if speed == 0
+      wagon.attach
       self.wagons << wagon
     end
   end
@@ -39,6 +40,7 @@ class Train
   
   def detach_wagon(wagon)
     if speed == 0
+      wagon.detach
       self.wagons.delete(wagon)
     end
   end

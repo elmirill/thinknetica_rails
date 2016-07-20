@@ -250,10 +250,14 @@ class RailwayManager
     select_train("Pick a train (by number) to attach a wagon:")
     select_wagon("A list of available wagons to attach:")
 
-    if input_train.attach_wagon?(input_wagon)
-      puts "Wagon ##{input_wagon.number} was successfully attached to the train ##{input_train.number}."
+    if !input_wagon.attached
+      if input_train.attach_wagon?(input_wagon)
+        puts "Wagon ##{input_wagon.number} was successfully attached to the train ##{input_train.number}."
+      else
+        puts "An error occured. Wagon wasn't attached to the train. Check the wagon type."
+      end
     else
-      puts "An error occured. Wagon wasn't attached to the train. Check the wagon type."
+      puts "This wagon is already attached."
     end
   end
   
