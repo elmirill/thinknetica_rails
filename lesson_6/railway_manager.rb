@@ -176,8 +176,6 @@ class RailwayManager
       list_stations
       input_intermediate_stations = gets.chomp.split(", ")
       
-      puts input_intermediate_stations.class
-      
       break if input_intermediate_stations == ["exit"]
       
       is_list = []

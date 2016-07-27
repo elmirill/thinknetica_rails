@@ -1,11 +1,8 @@
 class Train
   include Manufacturer
+  include InstanceCounter
   
   @@instances = []
-  
-  def self.all
-    @@instances
-  end
   
   def self.find(number)
     @@instances.detect { |t| t.number == number }
@@ -22,16 +19,9 @@ class Train
     @number = number
     @speed = 0
     @wagons = []
-    @@instances << self
     validate!
-  end
-  
-  def validate!
-    raise "Train number can't be blank" if @number == "" || @number.nil?
-    raise "Train number can't be 0" if @number == "0"
-    raise "Train number should be at least 5 and at most 6 characters" if @number.length < 5 || @number.length > 6
-    raise "Train format is not valid" if @number !~ /[a-z0-9]{3}-?[a-z0-9]{2}/i
-    true
+    count_instance
+    @@instances << self
   end
   
   def valid?
@@ -43,7 +33,7 @@ class Train
   end
   
   def attach_wagon(wagon)
-    if speed == 0
+    if speed == 0 && wagon.valid?
       wagon.attach
       self.wagons << wagon
     end
@@ -54,7 +44,7 @@ class Train
   end
   
   def detach_wagon(wagon)
-    if speed == 0
+    if speed == 0 && wagon.valid?
       wagon.detach
       self.wagons.delete(wagon)
     end
@@ -125,6 +115,14 @@ class Train
     if route?
       route.stations.find_index(current_station)
     end
+  end
+  
+  def validate!
+    raise "Train number can't be blank" if @number == "" || @number.nil?
+    raise "Train number can't be 0" if @number == "0"
+    raise "Train number should be at least 5 and at most 6 characters" if @number.length < 5 || @number.length > 6
+    raise "Train format is not valid" if @number !~ /[a-z0-9]{3}-?[a-z0-9]{2}/i
+    true
   end
   
 end

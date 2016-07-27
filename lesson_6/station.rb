@@ -11,15 +11,8 @@ class Station
     @trains = []
     @passenger_trains = []
     @cargo_trains = []
-    register_instance
     validate!
-  end
-  
-  def validate!
-    raise "Station name can't be blank" if @name == "" || @name.nil?
-    raise "Station name should be at least 3 and at most 30 characters" if @name.length < 3 || @name.length > 30
-    raise "Station name format is not valid" if @name !~ /[\w']{3,30}/
-    true
+    count_instance
   end
   
   def valid?
@@ -27,11 +20,13 @@ class Station
   end
   
   def accept_train(train)
-    self.trains << train
-    if train.is_a? PassengerTrain
-      self.passenger_trains << train
-    elsif train.is_a? CargoTrain
-      self.cargo_trains << train
+    if train.valid?
+      self.trains << train
+      if train.is_a? PassengerTrain
+        self.passenger_trains << train
+      elsif train.is_a? CargoTrain
+        self.cargo_trains << train
+      end
     end
   end
   
@@ -55,4 +50,11 @@ class Station
   attr_writer :trains
   attr_writer :passenger_trains
   attr_writer :cargo_trains
+  
+  def validate!
+    raise "Station name can't be blank" if @name == "" || @name.nil?
+    raise "Station name should be at least 3 and at most 30 characters" if @name.length < 3 || @name.length > 30
+    raise "Station name format is not valid" if @name !~ /[\w']{3,30}/
+    true
+  end
 end
