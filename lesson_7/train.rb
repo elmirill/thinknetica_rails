@@ -3,7 +3,7 @@ class Train
   include InstanceCounter
   
   def self.find(number)
-    @@instances.detect { |t| t.number == number }
+    instances.detect { |t| t.number == number }
   end
   
   attr_reader :number
@@ -65,11 +65,14 @@ class Train
     route != nil
   end
   
-  def move_to_station(station_name)
+  def move_to_station(station)
     if route?
-      destination_station = route.stations.find { |s| s.name == station_name }
-      self.current_station = destination_station
-      destination_station.accept_train(self)
+      if route.stations.any? { |s| s == station }
+        self.current_station = station
+        station.accept_train(self)
+      else
+        false
+      end
     else 
       false
     end

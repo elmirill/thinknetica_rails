@@ -8,10 +8,14 @@ class PassengerWagon < Wagon
     super(number)
   end
   
-  def take_seat
-    if empty_seats > 0
-      self.taken_seats += 1
+  def take_seats(take_seats)
+    if take_seats <= empty_seats
+      self.taken_seats += take_seats
     end
+  end
+  
+  def take_seats?(take_seats)
+    take_seats(take_seats)
   end
   
   def empty_seats

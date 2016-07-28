@@ -2,7 +2,7 @@ class Route
   include InstanceCounter
   
   def self.find(number)
-    @@instances.detect { |t| t.number == number }
+    instances.detect { |t| t.number == number }
   end
   
   attr_reader :number

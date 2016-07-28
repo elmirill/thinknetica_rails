@@ -14,6 +14,10 @@ class CargoWagon < Wagon
     end
   end
   
+  def take_capacity?(take_capacity)
+    take_capacity(take_capacity)
+  end
+  
   def empty_capacity
     capacity - taken_capacity
   end

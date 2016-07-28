@@ -12,6 +12,8 @@ class RailwayManager
     @input_train = nil
     @input_route = nil
     @input_wagon = nil
+    @input_capacity = nil
+    @input_seats = nil
   end
   
   def run
@@ -26,14 +28,15 @@ class RailwayManager
       puts "5. Create a wagon"
       puts "6. Attach wagons"
       puts "7. Detach wagons"
-      puts "8. Move trains to the station"
-      puts "9. List stations and trains on them"
-      puts "10. List all the trains and wagons attached"
-      puts "11. Exit"
+      puts "8. Take a seat/capacity in train"
+      puts "9. Move trains to the station"
+      puts "10. List stations and trains on them"
+      puts "11. List all the trains and wagons attached"
+      puts "12. Exit"
       puts "---------------------------------"
 
       input_top = gets.chomp.to_i
-      break if input_top == 11
+      break if input_top == 12
 
       case input_top
         when 1
@@ -51,16 +54,18 @@ class RailwayManager
         when 7
           detach_wagons
         when 8
-          move_to_station
+          take_seat_capacity
         when 9
-          list_stations_and_trains
+          move_to_station
         when 10
+          list_all_stations_and_trains
+        when 11
           list_trains
       end
     end
   end
   
-  protected
+  private
   
   attr_accessor :trains
   attr_accessor :passenger_trains
@@ -73,6 +78,8 @@ class RailwayManager
   attr_accessor :input_train
   attr_accessor :input_route
   attr_accessor :input_wagon
+  attr_accessor :input_capacity
+  attr_accessor :input_seats
   
   def create_station
     input_station_name = nil
@@ -304,6 +311,39 @@ class RailwayManager
     end
   end
   
+  def take_seat_capacity
+    select_wagon("Which wagon?")
+    if input_wagon.is_a? PassengerWagon
+      
+      loop do
+        puts "Enter how many seats do you want to take. Currently there are #{input_wagon.empty_seats} empty and #{input_wagon.taken_seats} taken seats."
+        self.input_seats = gets.chomp.to_i
+        break if input_seats != 0 && input_seats <= input_wagon.empty_seats
+      end
+      
+      if input_wagon.take_seats?(input_seats)
+        puts "Seats are taken. Currently there are #{input_wagon.empty_seats} empty and #{input_wagon.taken_seats} taken seats."
+      else
+        puts "An error occured, seata were NOT taken. Currently there are #{input_wagon.empty_seats} empty and #{input_wagon.taken_seats} taken seats."
+      end
+      
+    elsif input_wagon.is_a? CargoWagon
+      
+      loop do
+        puts "Enter the capacity to take. Currently there is #{input_wagon.empty_capacity} available."
+        self.input_capacity = gets.chomp.to_f
+        break if input_capacity != 0 && input_capacity <= input_wagon.empty_capacity
+      end
+      
+      if input_wagon.take_capacity?(input_capacity)
+        puts "Capacity of #{input_capacity} is taken. Currently there is #{input_wagon.empty_capacity} empty and #{input_wagon.taken_capacity} taken capacity."
+      else
+        puts "An error occured, capacity was NOT taken. Currently there is #{input_wagon.empty_capacity} empty and #{input_wagon.taken_capacity} taken capacity."
+      end
+      
+    end
+  end
+  
   def move_to_station
     select_train("What train would you like to move?")
 
@@ -323,8 +363,7 @@ class RailwayManager
         puts "There are no stations with this name, please enter another one."
       end
     end
-    
-    # ???
+
     if input_train.move_to_station?(input_station)
       puts "Train ##{input_train} successfully moved to #{input_station} station."
     else
@@ -332,25 +371,37 @@ class RailwayManager
     end
   end
   
-  def list_stations_and_trains
+  def list_all_stations_and_trains
     puts "List of all stations and trains on them:"
     stations.each do |s|
       puts "#{s.name}:"
-      if s.trains.size > 0
-        s.fetch_trains do |t|
-          puts "Train ##{t.number}, #{t.type}, #{t.wagons.count} wagons:"
-          t.fetch_wagons do |w|
-            if w.is_a? PassengerWagon
-              puts " - Wagon ##{w.number}, empty seats: #{w.empty_seats}, taken seats: #{w.taken_seats}"
-            elsif w.is_a? CargoWagon
-              puts " - Wagon ##{w.number}, empty capacity: #{w.empty_capacity}, taken capacity: #{w.taken_capacity}"
-            end
-          end
-        end
-      else
-        puts "There are no trains on this station."
+      list_trains_on_station(s)
+    end
+  end
+  
+  def list_trains_on_station(station)
+    if station.trains.size > 0
+      station.fetch_trains do |t|
+        puts "Train ##{t.number}, #{t.type}, #{t.wagons.count} wagons:"
+        list_wagons_attached(t)
       end
-      puts "---------------------------------"
+    else
+      puts "There are no trains on this station."
+    end
+    puts "---------------------------------"
+  end
+  
+  def list_wagons_attached(train)
+    if train.wagons.size > 0
+      train.fetch_wagons do |w|
+        if w.is_a? PassengerWagon
+          puts " - Wagon ##{w.number}, empty seats: #{w.empty_seats}, taken seats: #{w.taken_seats}"
+        elsif w.is_a? CargoWagon
+          puts " - Wagon ##{w.number}, empty capacity: #{w.empty_capacity}, taken capacity: #{w.taken_capacity}"
+        end
+      end
+    else
+      puts " - There are no wagons attached."
     end
   end
   
@@ -367,51 +418,34 @@ class RailwayManager
   def list_trains(type="all")
     case type
       when "all"
-        if passenger_trains.size > 0
-          passenger_trains.each do |t|
-            puts "Passenger train ##{t.number}"
-            list_wagons_attached(t)
-          end
-        else
-          puts "There are currently no passenger trains."
-        end
-        if cargo_trains.size > 0
-          cargo_trains.each do |t|
-            puts "Cargo train ##{t.number}"
-            list_wagons_attached(t)
-          end
-        else
-          puts "There are currently no cargo trains."
-        end
+        list_passenger_trains
+        list_cargo_trains
       when "passenger"
-        if passenger_trains.size > 0
-          passenger_trains.each do |t|
-            puts "Passenger train ##{t.number}"
-            list_wagons_attached(t)
-          end
-        else
-          puts "There are currently no passenger trains."
-        end
+        list_passenger_trains
       when "cargo"
-        if cargo_trains.size > 0
-          cargo_trains.each do |t|
-            puts "Cargo train ##{t.number}"
-            list_wagons_attached(t)
-          end
-        else
-          puts "There are currently no cargo trains."
-        end
+        list_cargo_trains
     end
   end
   
-  def list_wagons_attached(train)
-    if train.wagons.size > 0
-      wagons_numbers = train.wagons.map { |w| "##{w.number}" }
-      print " - Wagons attached: "
-      print wagons_numbers.join(", ")
-      puts "."
+  def list_passenger_trains
+    if passenger_trains.size > 0
+      passenger_trains.each do |t|
+        puts "Passenger train ##{t.number}, #{t.wagons.count} wagons:"
+        list_wagons_attached(t)
+      end
     else
-      puts " - No wagons attached"
+      puts "There are currently no passenger trains."
+    end
+  end
+  
+  def list_cargo_trains
+    if cargo_trains.size > 0
+      cargo_trains.each do |t|
+        puts "Cargo train ##{t.number}, #{t.wagons.count} wagons:"
+        list_wagons_attached(t)
+      end
+    else
+      puts "There are currently no cargo trains."
     end
   end
     
@@ -493,11 +527,7 @@ class RailwayManager
     self.input_wagon = nil
     loop do
       puts message
-      if input_train.class == PassengerTrain
-        list_wagons("passenger")
-      elsif input_train.class == CargoTrain
-        list_wagons("cargo")
-      end
+      list_wagons
       input_wagon_number = gets.chomp
       self.input_wagon = wagons.detect { |w| w.number == input_wagon_number }
       break if input_wagon != nil

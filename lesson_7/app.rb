@@ -34,8 +34,8 @@ $p_wagon_2 = PassengerWagon.new("k11", 30)
 $c_wagon_1 = CargoWagon.new("p30", 135)
 $c_wagon_2 = CargoWagon.new("b65", 190)
 
-13.times { $p_wagon_1.take_seat }
-30.times { $p_wagon_2.take_seat }
+$p_wagon_1.take_seats(23)
+$p_wagon_2.take_seats(11)
 $c_wagon_1.take_capacity(130)
 $c_wagon_2.take_capacity(190)
 
@@ -45,14 +45,12 @@ $hill_valley_to_worlds_end.add_intermediates([$hogsmeade, $kings_cross])
 $hill_valley_to_worlds_end.add_intermediates([$chufnell_regis, $hill_valley])
 
 # Setting relations
-$kings_cross.accept_train($hogwarts_express)
-$kings_cross.accept_train($the_elb)
-
 $the_elb.add_route($hill_valley_to_worlds_end)
-$the_elb.move_to_station("World's End")
+$the_elb.move_to_station($worlds_end)
 $the_elb.attach_wagon($c_wagon_1)
 $the_elb.attach_wagon($c_wagon_2)
 
+$hogwarts_express.add_route($kings_cross_to_hogsmeade)
 $hogwarts_express.attach_wagon($p_wagon_1)
 $hogwarts_express.attach_wagon($p_wagon_2)
 
@@ -65,12 +63,16 @@ Station.all.each do |s|
   if s.trains.size > 0
     s.fetch_trains do |t|
       puts "Train ##{t.number}, #{t.type}, #{t.wagons.count} wagons:"
-      t.fetch_wagons do |w|
-        if w.is_a? PassengerWagon
-          puts " - Wagon ##{w.number}, empty seats: #{w.empty_seats}, taken seats: #{w.taken_seats}"
-        elsif w.is_a? CargoWagon
-          puts " - Wagon ##{w.number}, empty capacity: #{w.empty_capacity}, taken capacity: #{w.taken_capacity}"
+      if t.wagons.size > 0
+        t.fetch_wagons do |w|
+          if w.is_a? PassengerWagon
+            puts " - Wagon ##{w.number}, empty seats: #{w.empty_seats}, taken seats: #{w.taken_seats}"
+          elsif w.is_a? CargoWagon
+            puts " - Wagon ##{w.number}, empty capacity: #{w.empty_capacity}, taken capacity: #{w.taken_capacity}"
+          end
         end
+      else
+        puts " - There are no wagons attached."
       end
     end
   else

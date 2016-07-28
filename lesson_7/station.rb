@@ -2,7 +2,7 @@ class Station
   include InstanceCounter
   
   def self.find(name)
-    @@instances.detect { |t| t.name == name }
+    instances.detect { |t| t.name == name }
   end
   
   attr_reader :name
