@@ -3,26 +3,20 @@ module InstanceCounter
     base.extend ClassMethods
     base.send :include, InstanceMethods
   end
-  
+
   module ClassMethods
+    attr_accessor :instances
+
     def instances
       @instances ||= []
-      @instances
     end
-    
-    def instances=(instances)
-      @instances ||= []
-      @instances = instances
-    end
-  
-    def all
-      @instances
-    end
+
+    alias all instances
   end
-  
+
   module InstanceMethods
     protected
-    
+
     def register_instance
       self.class.instances << self
     end

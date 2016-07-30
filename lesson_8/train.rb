@@ -1,18 +1,17 @@
 class Train
   include Manufacturer
   include InstanceCounter
-  
+
   def self.find(number)
     instances.detect { |t| t.number == number }
   end
-  
+
   attr_reader :number
   attr_reader :wagons
   attr_reader :route
   attr_reader :current_station
-  # У нас пока нет другого метода, который бы управлял изменением скорости, и я не вижу необходимости в его создании, поэтому оставляем доступ на изменение публичным.
   attr_accessor :speed
-  
+
   def initialize(number)
     @number = number
     @speed = 0
@@ -20,107 +19,98 @@ class Train
     validate!
     register_instance
   end
-  
+
   def valid?
     validate!
   end
-  
+
   def stop
     self.speed = 0
   end
-  
+
   def attach_wagon(wagon)
-    if speed == 0 && wagon.valid?
-      wagon.attach
-      self.wagons << wagon
-    end
+    # How do we check if it's a proper Train object?
+    #    if speed == 0 && wagon.valid?
+    false unless speed.zero?
+    wagon.attach
+    wagons << wagon
   end
-  
+
   def attach_wagon?(wagon)
     attach_wagon(wagon)
   end
-  
+
   def detach_wagon(wagon)
-    if speed == 0 && wagon.valid?
-      wagon.detach
-      self.wagons.delete(wagon)
-    end
+    # How do we check if it's a proper Train object?
+    #    if speed == 0 && wagon.valid?
+    false unless speed.zero?
+    wagon.detach
+    wagons.delete(wagon)
   end
-  
+
   def detach_wagon?(wagon)
     detach_wagon(wagon)
   end
-  
+
   def add_route(route)
     self.route = route
     self.current_station = route.stations.first
     current_station.accept_train(self)
   end
-  
+
   def add_route?(route)
     add_route(route)
   end
-  
+
   def route?
-    route != nil
+    !!route
   end
-  
+
   def move_to_station(station)
-    if route?
-      if route.stations.any? { |s| s == station }
-        self.current_station = station
-        station.accept_train(self)
-      else
-        false
-      end
-    else 
+    if route? && route.stations.any? { |s| s == station }
+      self.current_station = station
+      station.accept_train(self)
+    else
       false
     end
   end
-  
+
   def move_to_station?(station_name)
     move_to_station(station_name)
   end
-      
+
   def previous_station
-    if route? && current_station_index != 0
-      route.stations[current_station_index - 1]
-    end
+    false unless route? && current_station_index.nonzero?
+    route.stations[current_station_index - 1]
   end
-  
+
   def next_station
-    if route? && current_station_index != route.stations.size - 1
-      route.stations[current_station_index + 1]
-    end
+    false unless route? && current_station_index != route.stations.size - 1
+    route.stations[current_station_index + 1]
   end
-  
+
   def type
-    if self.class == PassengerTrain
+    if is_a? PassengerTrain
       "passenger"
-    elsif self.class == CargoTrain
+    elsif is_a? CargoTrain
       "cargo"
     end
   end
-  
+
   def fetch_wagons
     wagons.each { |w| yield(w) }
   end
-  
-  # Остальные методы (те, что выше) могут быть полезны для клиентского кода и не нарушают принципов инкапсуляции.
+
   protected
-  
-  # Для этих атрибутов есть специальные методы, которые управляют их изменениями.
+
   attr_writer :wagons
   attr_writer :route
   attr_writer :current_station
-  
-  # Вспомогательный метод, используется для получения предыдущей и следующей станции, сам по себе пользы не несет.
+
   def current_station_index
-    if route?
-      route.stations.find_index(current_station)
-    end
+    route.stations.find_index(current_station) if route?
   end
-  
+
   def validate!
     raise "Train number can't be blank" if @number == "" || @number.nil?
     raise "Train number can't be 0" if @number == "0"
@@ -128,5 +118,4 @@ class Train
     raise "Train format is not valid" if @number !~ /[a-z0-9]{3}-?[a-z0-9]{2}/i
     true
   end
-  
 end
