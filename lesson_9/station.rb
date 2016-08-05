@@ -1,5 +1,9 @@
 class Station
+  extend Accessors
   include InstanceCounter
+  include Validations
+  
+  NAME_FORMAT = /[\w']{3,30}/
 
   def self.find(name)
     instances.detect { |t| t.name == name }
@@ -9,7 +13,16 @@ class Station
   attr_reader :trains
   attr_reader :passenger_trains
   attr_reader :cargo_trains
-
+  
+  attr_accessor_with_history :income_per_day
+  attr_accessor_with_history :tickets_per_day
+  
+  strong_attr_accessor :rating, Float
+  
+  validate :name, :presence
+  validate :name, :type, String
+  validate :name, :format, NAME_FORMAT
+  
   def initialize(name)
     @name = name
     @trains = []
@@ -19,12 +32,7 @@ class Station
     register_instance
   end
 
-  def valid?
-    validate!
-  end
-
   def accept_train(train)
-    # How do we check if it's a proper Train object?
     trains << train
     if train.is_a? PassengerTrain
       passenger_trains << train
@@ -56,11 +64,4 @@ class Station
   attr_writer :trains
   attr_writer :passenger_trains
   attr_writer :cargo_trains
-
-  def validate!
-    raise "Station name can't be blank" if @name == "" || @name.nil?
-    raise "Station name should be at least 3 and at most 30 characters" if @name.length < 3 || @name.length > 30
-    raise "Station name format is not valid" if @name !~ /[\w']{3,30}/
-    true
-  end
 end

@@ -1,6 +1,14 @@
 class CargoWagon < Wagon
   attr_reader :capacity
   attr_reader :taken_capacity
+  
+  # Repeat
+  validate :number, :presence
+  validate :number, :format, NUMBER_FORMAT
+  
+  validate :capacity, :presence
+  validate :capacity, :greater_than_or_equal_to, 50
+  validate :capacity, :less_than_or_equal_to, 200
 
   def initialize(options = {})
     @capacity = options[:capacity].to_f
@@ -24,11 +32,4 @@ class CargoWagon < Wagon
 
   attr_writer :capacity
   attr_writer :taken_capacity
-
-  def validate!
-    raise "Capacity can't be blank" if @capacity.nil?
-    raise "Capacity can't be 0" if @capacity.zero?
-    raise "Capacity should be at least 50 and at most 200" if @capacity < 50 || @capacity > 200
-    super
-  end
 end

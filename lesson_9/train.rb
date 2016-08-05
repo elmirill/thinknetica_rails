@@ -1,6 +1,10 @@
 class Train
+  extend Accessors
   include Manufacturer
   include InstanceCounter
+  include Validations
+  
+  NUMBER_FORMAT = /[a-z0-9]{3}-?[a-z0-9]{2}/i
 
   def self.find(number)
     instances.detect { |t| t.number == number }
@@ -10,7 +14,11 @@ class Train
   attr_reader :wagons
   attr_reader :route
   attr_reader :current_station
-  attr_accessor :speed
+  
+  strong_attr_accessor :speed, Fixnum
+  
+  validate :number, :presence
+  validate :number, :format, NUMBER_FORMAT
 
   def initialize(number)
     @number = number
@@ -20,17 +28,11 @@ class Train
     register_instance
   end
 
-  def valid?
-    validate!
-  end
-
   def stop
     self.speed = 0
   end
 
   def attach_wagon(wagon)
-    # How do we check if it's a proper Train object?
-    #    if speed == 0 && wagon.valid?
     false unless speed.zero?
     wagon.attach
     wagons << wagon
@@ -41,8 +43,6 @@ class Train
   end
 
   def detach_wagon(wagon)
-    # How do we check if it's a proper Train object?
-    #    if speed == 0 && wagon.valid?
     false unless speed.zero?
     wagon.detach
     wagons.delete(wagon)
@@ -109,13 +109,5 @@ class Train
 
   def current_station_index
     route.stations.find_index(current_station) if route?
-  end
-
-  def validate!
-    raise "Train number can't be blank" if @number == "" || @number.nil?
-    raise "Train number can't be 0" if @number == "0"
-    raise "Train number should be at least 5 and at most 6 characters" if @number.length < 5 || @number.length > 6
-    raise "Train format is not valid" if @number !~ /[a-z0-9]{3}-?[a-z0-9]{2}/i
-    true
   end
 end

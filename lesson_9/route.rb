@@ -1,5 +1,8 @@
 class Route
   include InstanceCounter
+  include Validations
+  
+  NUMBER_FORMAT = /\d{1,3}/
 
   def self.find(number)
     instances.detect { |t| t.number == number }
@@ -7,16 +10,16 @@ class Route
 
   attr_reader :number
   attr_reader :stations
+  
+  validate :number, :presence
+  validate :number, :format, NUMBER_FORMAT
+  validate :stations, :type, Array
 
   def initialize(options = {})
     @number = options[:number]
     @stations = options[:stations]
     validate!
     register_instance
-  end
-
-  def valid?
-    validate!
   end
 
   def add_intermediates(int_stations)
@@ -49,15 +52,4 @@ class Route
   protected
 
   attr_writer :stations
-
-  def validate!
-    raise "Route number can't be blank" if @number == "" || @number.nil?
-    raise "Route number can't be 0" if @number == "0"
-    raise "Route number format is not valid." if @number !~ /\d{1,3}/
-    unless (@stations.is_a? Array) || @stations.all? { |s| s.is_a? Station } || @stations.all?(&:valid?)
-      raise "Please add valid stations"
-    end
-    raise "Route should have at least two stations" if @stations.nil? || @stations.size < 2
-    true
-  end
 end
